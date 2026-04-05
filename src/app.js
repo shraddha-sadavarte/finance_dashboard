@@ -4,6 +4,7 @@ import cors from 'cors'
 import { testConnection } from './config/db.js'
 import errorHandler from './middleware/errorHandler.js'
 import env from './config/env.js'
+import authRoutes from './modules/auth/auth.routes.js';
 
 const app = express();
 
@@ -20,6 +21,10 @@ app.get('/health', (req, res) => {
         timestamp: new Date().toISOString(),
     })
 })
+
+//routes
+app.use('/api/v1/auth', authRoutes);
+console.log('Auth routes mounted correctly')
 
 //404 handler
 app.use((req, res) => {

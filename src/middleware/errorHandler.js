@@ -1,6 +1,7 @@
 //global error handler
 //caches every error thrown in the app
 import { sendError } from '../utils/response.js';
+import { AppError } from '../utils/errors.js';
 
 const errorHandler = (err, req, res, next) => {
     //log every error in development
