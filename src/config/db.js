@@ -1,6 +1,6 @@
 //creates mysql connection pool and exports it.
 //instead of opening and closing a new connection for each query, we can reuse connections from the pool which improves performance and resource management.
-import mysql from mysql2/Promise;
+import mysql from 'mysql2/promise';
 import env from './env.js'
 
 const pool = mysql.createPool({
