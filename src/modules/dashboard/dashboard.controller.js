@@ -1,20 +1,33 @@
 import * as dashboardService from './dashboard.service.js';
 import { sendSuccess } from '../../utils/response.js';
 
-// Summary 
+// Summary
 export const getSummary = async (req, res, next) => {
   try {
-    const data = await dashboardService.getSummary();
+    // VIEWER sees only their own summary
+    const data = req.user.role === 'VIEWER'
+      ? await dashboardService.getUserSummary(req.user.id)
+      : await dashboardService.getSummary();
+
     return sendSuccess(res, data, 'Dashboard summary fetched successfully');
   } catch (error) {
     next(error);
   }
 };
 
-// Category Breakdown 
+// Admin — see all users summary
+export const getUsersSummary = async (req, res, next) => {
+  try {
+    const data = await dashboardService.getAllUsersSummary();
+    return sendSuccess(res, data, 'Users summary fetched successfully');
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Category Breakdown
 export const getCategoryBreakdown = async (req, res, next) => {
   try {
-    // Optional ?type=INCOME or ?type=EXPENSE filter
     const { type } = req.query;
     const data = await dashboardService.getCategoryBreakdown(type);
     return sendSuccess(res, data, 'Category breakdown fetched successfully');
@@ -23,7 +36,7 @@ export const getCategoryBreakdown = async (req, res, next) => {
   }
 };
 
-// Monthly Trends 
+// Monthly Trends
 export const getMonthlyTrends = async (req, res, next) => {
   try {
     const data = await dashboardService.getMonthlyTrends();
@@ -33,7 +46,7 @@ export const getMonthlyTrends = async (req, res, next) => {
   }
 };
 
-// Weekly Trends 
+// Weekly Trends
 export const getWeeklyTrends = async (req, res, next) => {
   try {
     const data = await dashboardService.getWeeklyTrends();
@@ -43,12 +56,16 @@ export const getWeeklyTrends = async (req, res, next) => {
   }
 };
 
-// Recent Activity 
+// Recent Activity
 export const getRecentActivity = async (req, res, next) => {
   try {
-    // Optional ?limit=20 to get more or fewer records
     const limit = Math.min(50, parseInt(req.query.limit) || 10);
-    const data = await dashboardService.getRecentActivity(limit);
+
+    // ✅ Simple direct check — no destructuring needed
+    const data = req.user.role === 'VIEWER'
+      ? await dashboardService.getMyRecentActivity(req.user.id, limit)
+      : await dashboardService.getRecentActivity(limit);
+
     return sendSuccess(res, data, 'Recent activity fetched successfully');
   } catch (error) {
     next(error);

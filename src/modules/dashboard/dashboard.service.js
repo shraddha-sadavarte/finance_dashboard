@@ -30,6 +30,38 @@ export const getSummary = async () => {
   };
 };
 
+// ─── Per User Summary for Admin ───────────────────────────────────
+export const getAllUsersSummary = async () => {
+  const [rows] = await pool.query(`
+    SELECT
+      u.id,
+      u.name,
+      u.email,
+      u.role,
+      COUNT(r.id)                                                AS total_records,
+      COALESCE(SUM(CASE WHEN r.type = 'INCOME'  THEN r.amount ELSE 0 END), 0) AS total_income,
+      COALESCE(SUM(CASE WHEN r.type = 'EXPENSE' THEN r.amount ELSE 0 END), 0) AS total_expenses,
+      COALESCE(SUM(CASE WHEN r.type = 'INCOME'  THEN r.amount
+                        WHEN r.type = 'EXPENSE' THEN -r.amount
+                        ELSE 0 END), 0)                          AS net_balance
+    FROM users u
+    LEFT JOIN financial_records r ON u.id = r.user_id
+    GROUP BY u.id, u.name, u.email, u.role
+    ORDER BY u.name ASC
+  `);
+
+  return rows.map(row => ({
+    id:             row.id,
+    name:           row.name,
+    email:          row.email,
+    role:           row.role,
+    total_records:  Number(row.total_records),
+    total_income:   Number(row.total_income),
+    total_expenses: Number(row.total_expenses),
+    net_balance:    Number(row.net_balance),
+  }));
+};
+
 // ─── Category Breakdown ───────────────────────────────────────────
 // How much spent/earned per category
 export const getCategoryBreakdown = async (type) => {
@@ -157,4 +189,55 @@ export const getRecentActivity = async (limit = 10) => {
     ...row,
     amount: Number(row.amount),
   }));
+};
+
+// ─── Recent Activity for specific user (VIEWER) ───────────────────
+export const getMyRecentActivity = async (userId, limit = 10) => {
+  const [rows] = await pool.query(`
+    SELECT
+      r.id,
+      r.amount,
+      r.type,
+      r.category,
+      r.date,
+      r.description,
+      r.created_at
+    FROM financial_records r
+    WHERE r.user_id = ?
+    ORDER BY r.created_at DESC
+    LIMIT ?
+  `, [userId, limit]);
+
+  return rows.map(row => ({
+    ...row,
+    amount: Number(row.amount),
+  }));
+};
+
+// For VIEWER — their own summary only
+export const getUserSummary = async (userId) => {
+  const [rows] = await pool.query(`
+    SELECT
+      SUM(CASE WHEN type = 'INCOME'  THEN amount ELSE 0 END) AS total_income,
+      SUM(CASE WHEN type = 'EXPENSE' THEN amount ELSE 0 END) AS total_expenses,
+      SUM(CASE WHEN type = 'INCOME'  THEN amount
+               WHEN type = 'EXPENSE' THEN -amount
+               ELSE 0 END)                                   AS net_balance,
+      COUNT(*)                                               AS total_records,
+      COUNT(CASE WHEN type = 'INCOME'  THEN 1 END)           AS income_count,
+      COUNT(CASE WHEN type = 'EXPENSE' THEN 1 END)           AS expense_count
+    FROM financial_records
+    WHERE user_id = ?
+  `, [userId]);
+
+  const summary = rows[0];
+
+  return {
+    total_income:   Number(summary.total_income)   || 0,
+    total_expenses: Number(summary.total_expenses) || 0,
+    net_balance:    Number(summary.net_balance)    || 0,
+    total_records:  Number(summary.total_records)  || 0,
+    income_count:   Number(summary.income_count)   || 0,
+    expense_count:  Number(summary.expense_count)  || 0,
+  };
 };

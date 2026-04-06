@@ -12,19 +12,18 @@ import {
 
 const router = Router();
 
-// All routes require authentication
 router.use(authenticate);
 
-// Any logged in user 
+// Any logged in user — view their own records
 router.get('/my', getMyRecords);
 
-// ADMIN + ANALYST 
+// ANALYST + ADMIN — view all records
 router.get('/',    authorize('ADMIN', 'ANALYST'), getAllRecords);
 router.get('/:id', authorize('ADMIN', 'ANALYST'), getRecordById);
 
-// ADMIN only 
-router.post('/',      authorize('ADMIN'), createRecord);
-router.patch('/:id',  authorize('ADMIN'), updateRecord);
-router.delete('/:id', authorize('ADMIN'), deleteRecord);
+// ✅ Any logged in user can create, update, delete their OWN records
+router.post('/',      createRecord);
+router.patch('/:id',  updateRecord);
+router.delete('/:id', deleteRecord);
 
 export default router;

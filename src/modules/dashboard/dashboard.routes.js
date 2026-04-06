@@ -7,6 +7,7 @@ import {
   getMonthlyTrends,
   getWeeklyTrends,
   getRecentActivity,
+  getUsersSummary
 } from './dashboard.controller.js';
 
 const router = Router();
@@ -25,6 +26,14 @@ router.get('/recent',
   authorize('VIEWER', 'ANALYST', 'ADMIN'),
   getRecentActivity
 );
+
+// My summary — VIEWER gets their own summary
+router.get('/my-summary',
+  authorize('VIEWER'),
+  getRecentActivity  // we'll add this controller below
+);
+
+router.get('/users-summary', authorize('ADMIN'), getUsersSummary)
 
 // Category breakdown — ANALYST and ADMIN only
 router.get('/categories',
