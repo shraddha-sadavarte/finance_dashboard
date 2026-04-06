@@ -9,6 +9,7 @@ import authenticate from './middleware/auth.js'
 import authorize from './middleware/rbac.js'
 import userRoutes from './modules/users/users.routes.js';
 import recordRoutes from './modules/records/records.routes.js';
+import dashboardRoutes from './modules/dashboard/dashboard.routes.js';
 
 const app = express();
 
@@ -30,6 +31,7 @@ app.get('/health', (req, res) => {
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/records', recordRoutes);
+app.use('/api/v1/dashboard', dashboardRoutes);
 
 //404 handler
 app.use((req, res) => {

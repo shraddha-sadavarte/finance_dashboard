@@ -9,6 +9,8 @@ const errorHandler = (err, req, res, next) => {
         console.error(err);
     }
 
+    console.log(err);
+
     //our own known errors
     if(err instanceof AppError){
         return res.status(err.statusCode).json({
