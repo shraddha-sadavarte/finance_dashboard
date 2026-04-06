@@ -5,6 +5,9 @@ import { testConnection } from './config/db.js'
 import errorHandler from './middleware/errorHandler.js'
 import env from './config/env.js'
 import authRoutes from './modules/auth/auth.routes.js';
+import authenticate from './middleware/auth.js'
+import authorize from './middleware/rbac.js'
+import userRoutes from './modules/users/users.routes.js';
 
 const app = express();
 
@@ -24,7 +27,7 @@ app.get('/health', (req, res) => {
 
 //routes
 app.use('/api/v1/auth', authRoutes);
-console.log('Auth routes mounted correctly')
+app.use('/api/v1/users', userRoutes);
 
 //404 handler
 app.use((req, res) => {
